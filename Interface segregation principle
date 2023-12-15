@@ -1,0 +1,141 @@
+Приклад
+Приклад порушення ISP
+Для прикладу порушення уявімо собі таку систему:
+
+public interface Animal {
+	void eat();
+	void fly();
+	void bark();
+}
+public class Bird implements Animal {
+	@Override
+	public void eat() {
+		// деяка реалізація
+	}
+	
+	@Override
+	public void fly() {
+		// деяка реалізація
+	}
+	
+	@Override
+	public void bark() {
+		throw new UnsupportedOperationException();
+	}
+}
+public class Dog implements Animal {
+	@Override
+	public void eat() {
+		// деяка реалізація
+	}
+	
+	@Override
+	public void fly() {
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public void bark() {
+		// деяка реалізація
+	}
+}
+Що буде, коли в систему доведеться додавати новий клас, наприклад Cat? Легко здогадатися, якою буде його реалізація.
+
+Застосування ISP
+Виходом з цієї ситуації є використання розділення інтерфейсу. Так званий «товстий» Animal варто розділити на наступні два інтерфейси: Flyable та Barkable.
+
+public interface Animal {
+	void eat();
+}
+public interface Flyable {
+	void fly();
+}
+public interface Barkable {
+	void bark();
+}
+public class Bird implements Animal, Flyable {
+	@Override
+	public void eat() {
+		// деяка реалізація
+	}
+	
+	@Override
+	public void fly() {
+		// деяка реалізація
+	}
+}
+public class Dog implements Animal, Barkable {
+	@Override
+	public void eat() {
+		// деяка реалізація
+	}
+	
+	@Override
+	public void bark() {
+		// деяка реалізація
+	}
+}
+Після застосування такого підходу класи стають «здоровими», з них зникають зайві методи.
+
+ISP та шаблони проектування
+Проте інколи складається ситуація, що не дозволяє зробити такий рефакторинг. Тоді варто застосовувати архітектурне рішення, що надає паттерн Адаптер. Система набуває такого вигляду:
+
+public interface Animal {
+	void eat();
+	void fly();
+	void bark();
+}
+public interface Eatable {
+	void eat();
+}
+public interface Flyable {
+	void fly();
+}
+public interface Barkable {
+	void bark();
+}
+public class FlyingAdapter implements Eatable, Flyable {
+	private Animal animal;
+	
+	public FlyingAdapter(Animal animal) {
+		this.animal = animal;
+	}
+	
+	@Override
+	public void fly() {
+		animal.fly();
+	}
+	
+	@Override
+	public void eat() {
+		animal.eat();
+	}
+}
+public class BarkingAdapter implements Eatable, Barkable {
+	private Animal animal;
+	
+	public BarkingAdapter(Animal animal) {
+		this.animal = animal;
+	}
+	
+	@Override
+	public void bark() {
+		animal.bark();
+	}
+	
+	@Override
+	public void eat() {
+		animal.eat();
+	}
+}
+Наслідки використання цього підходу наступні:
+
+клієнтський код працює лише з тією функціональністю, яка йому потрібна;
+в той же час, робота відбувається за допомогою сутностей старої системи, що не вимагає в ній будь-яких змін;
+подібний підхід знижує очевидність архітектурних рішень, прочитність коду, і має використовуватись тільки якщо зміна старої системи неможлива з певних причин.
+Переваги та недоліки
+Серед плюсів варто відзначити наступні:
+
+при необхідності створення нової реалізації інтерфейсу немає потреби реалізовувати непотрібні методи;
+клієнтський код отримує лише те, що потрібне для його роботи.
+Мінус використання полягає в зростанні кількості інтерфейсів, що приводить до зростання складності системи.
